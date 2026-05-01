@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Loan Approval Predictor</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:'Segoe UI',sans-serif;min-height:100vh;
+      background:linear-gradient(135deg,#0f172a,#1e293b,#0f172a);
+      display:flex;align-items:center;justify-content:center;
+      padding:24px;color:#fff;
+    }
+    .wrapper{width:100%;max-width:620px}
+    .header-card{
+      background:linear-gradient(135deg,#1d4ed8,#7c3aed);
+      border-radius:18px 18px 0 0;padding:24px 28px 20px;text-align:center;
+    }
+    .header-card .icon{font-size:38px;margin-bottom:8px}
+    .header-card h1{font-size:1.5rem;font-weight:800;margin-bottom:4px}
+    .header-card .sub{color:rgba(255,255,255,.7);font-size:.82rem;margin-bottom:12px}
+    .info-strip{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+    .info-pill{
+      background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+      border-radius:20px;padding:3px 12px;font-size:.72rem;color:rgba(255,255,255,.9);
+    }
+    .form-card{
+      background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+      border-top:none;border-radius:0 0 18px 18px;padding:28px;
+      backdrop-filter:blur(12px);
+    }
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .form-group{display:flex;flex-direction:column;gap:6px}
+    label{font-size:.78rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.4px}
+    input,select{
+      padding:11px 14px;background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);border-radius:10px;
+      color:#fff;font-size:.95rem;outline:none;transition:border-color .2s;
+    }
+    input:focus,select:focus{border-color:#3b82f6}
+    select option{background:#1e293b;color:#fff}
+    button{
+      width:100%;margin-top:18px;padding:13px;
+      background:linear-gradient(135deg,#1d4ed8,#7c3aed);
+      color:#fff;font-size:1rem;font-weight:700;border:none;
+      border-radius:12px;cursor:pointer;transition:.15s;
+    }
+    button:hover{opacity:.88;transform:translateY(-1px)}
+    .result{margin-top:20px;padding:22px;border-radius:14px;text-align:center}
+    .result.approved{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35)}
+    .result.rejected{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35)}
+    .result-emoji{font-size:2.6rem;margin-bottom:6px}
+    .result-label{font-size:1.9rem;font-weight:800;letter-spacing:2px}
+    .approved .result-label{color:#4ade80}
+    .rejected .result-label{color:#f87171}
+    .result-conf{color:rgba(255,255,255,.5);font-size:.86rem;margin-top:5px}
+    .bar-wrap{margin-top:12px;background:rgba(255,255,255,.08);border-radius:8px;height:9px;overflow:hidden}
+    .bar-fill{height:100%;border-radius:8px;transition:width .5s}
+    .approved .bar-fill{background:linear-gradient(90deg,#22c55e,#4ade80)}
+    .rejected .bar-fill{background:linear-gradient(90deg,#ef4444,#f87171)}
+    .error{margin-top:14px;padding:12px;background:rgba(239,68,68,.1);
+      border:1px solid rgba(239,68,68,.3);border-radius:10px;
+      color:#f87171;font-size:.88rem;text-align:center}
+    .tips{margin-top:20px;padding:14px 16px;background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.07);border-radius:12px}
+    .tips h3{font-size:.75rem;color:rgba(255,255,255,.35);
+      text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+    .tips ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+    .tips li{font-size:.8rem;color:rgba(255,255,255,.45);padding-left:14px;position:relative}
+    .tips li::before{content:'·';position:absolute;left:4px;color:#3b82f6}
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header-card">
+    <div class="icon">🏦</div>
+    <h1>Loan Approval Predictor</h1>
+    <p class="sub">Decision Tree Classifier &nbsp;·&nbsp; sklearn &nbsp;·&nbsp; 100% Accuracy</p>
+    <div class="info-strip">
+      <span class="info-pill">👤 Vinayak Gautam</span>
+      <span class="info-pill">🎓 Enroll: 2503051240158</span>
+      <span class="info-pill">📚 Div: 2B3 | Batch: 3rd</span>
+    </div>
+  </div>
+  <div class="form-card">
+    <form action="/predict" method="POST">
+      <div class="grid">
+        <div class="form-group">
+          <label>Age (years)</label>
+          <input type="number" name="age" min="18" max="70"
+            value="{{ age or '' }}" placeholder="e.g. 30" required/>
+        </div>
+        <div class="form-group">
+          <label>Annual Income (LPA)</label>
+          <input type="number" name="income" step="0.5" min="0"
+            value="{{ income or '' }}" placeholder="e.g. 10" required/>
+        </div>
+        <div class="form-group">
+          <label>Credit Score</label>
+          <input type="number" name="credit_score" min="300" max="900"
+            value="{{ credit_score or '' }}" placeholder="e.g. 720" required/>
+        </div>
+        <div class="form-group">
+          <label>Loan Amount (Lakhs)</label>
+          <input type="number" name="loan_amount" step="0.5" min="1"
+            value="{{ loan_amount or '' }}" placeholder="e.g. 5" required/>
+        </div>
+        <div class="form-group">
+          <label>Employment Status</label>
+          <select name="employed">
+            <option value="1" {% if employed == 1 %}selected{% endif %}>Employed</option>
+            <option value="0" {% if employed == 0 %}selected{% endif %}>Unemployed</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Existing Loans</label>
+          <input type="number" name="existing_loans" min="0" max="10"
+            value="{{ existing_loans or 0 }}" placeholder="e.g. 0" required/>
+        </div>
+      </div>
+      <button type="submit">🔍 Check Loan Eligibility</button>
+    </form>
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    {% if label %}
+    <div class="result {{ 'approved' if is_approved else 'rejected' }}">
+      <div class="result-emoji">{{ '✅' if is_approved else '❌' }}</div>
+      <div class="result-label">LOAN {{ label }}</div>
+      <div class="result-conf">Confidence: {{ confidence }}%</div>
+      <div class="bar-wrap">
+        <div class="bar-fill" style="width:{{ confidence }}%"></div>
+      </div>
+    </div>
+    {% endif %}
+    <div class="tips">
+      <h3>Tips for Approval</h3>
+      <ul>
+        <li>Credit score above 650 significantly improves chances</li>
+        <li>Stable employment is a key factor</li>
+        <li>Keep existing loans minimal before applying</li>
+        <li>Loan amount should match your income level</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</body>
+</html>
